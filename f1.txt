@@ -1,2 +1,3 @@
+lets conflict from feature branch
 this is new feature branch f1
 now for conflicting written in feature branch
