@@ -1,0 +1,31 @@
+he error message suggests that your private key file (aws-first.pem) still has permissions that are too open. Specifically, SSH is warning about the presence of the NT AUTHORITY\Authenticated Users permission. To fix this, you need to ensure that only your user has access to the file, and no other users or groups can read it.
+
+Here are the steps to restrict permissions further using the icacls command, which is often more effective for setting precise permissions in Windows:
+
+Step-by-Step Solution
+Open PowerShell as Administrator.
+
+Remove All Unnecessary Permissions: Use icacls to remove permissions for other users, including NT AUTHORITY\Authenticated Users.
+
+Run these commands in PowerShell:
+
+
+icacls "I:\aws-first.pem" /inheritance:r
+icacls "I:\aws-first.pem" /remove "NT AUTHORITY\Authenticated Users"
+icacls "I:\aws-first.pem" /remove "Users"
+
+The first command removes inherited permissions.
+The second and third commands remove permissions for Authenticated Users and the general Users group.
+Grant Full Control Only to Your User: Replace YOUR_USERNAME with your actual Windows username to give yourself exclusive access.
+
+icacls "I:\aws-first.pem" /grant:r "YOUR_USERNAME:F"
+Verify the Permissions: You can check the current permissions with:
+
+
+icacls "I:\aws-first.pem"
+The output should show only your username with (F) (Full Control) and no other users.
+
+Reattempt the SSH Command: Now try connecting again:
+
+
+ssh -i "I:\aws-first.pem" ubuntu@16.171.6.128
