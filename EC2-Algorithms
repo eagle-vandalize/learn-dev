@@ -1,0 +1,21 @@
+Round Robin (Default Algorithm for Application Load Balancer and Classic Load Balancer):
+Use Case: Ideal for scenarios where all targets have roughly the same capacity and can handle the same types of requests. It's commonly used when instances are similarly configured.
+Example: If there are three instances (A, B, C), requests will be distributed in the order: A → B → C → A → B → C, and so on.
+
+Least Outstanding Requests (Algorithm for Application Load Balancer and Network Load Balancer) 
+Example: If there are three targets (A, B, C) and target A is processing fewer requests than the others, new traffic will be sent to A.
+
+
+ Weighted Round Robin (Classic Load Balancer, used in combination with target group weights in Application Load Balancer)
+Example: If instances A, B, and C are given weights 3, 1, and 2 respectively, the traffic will be distributed as follows:
+3 requests to A, 1 to B, and 2 to C in each cycle.
+
+
+ IP Hash (Classic Load Balancer and Network Load Balancer)
+Example: A request from IP address 192.168.1.1 might be hashed to a particular instance based on the algorithm, ensuring that subsequent requests from the same IP are directed to the same instance.
+
+Least Connections (Network Load Balancer)
+Example: If targets A, B, and C have 10, 5, and 2 active connections respectively, the next incoming connection will be routed to target C, as it has the least number of active connections.
+
+Target Group Stickiness (Sticky Sessions for Application Load Balancer and Network Load Balancer)
+Example: Once a client is directed to target A, future requests from the same client will always go to target A, based on the session cookie.
