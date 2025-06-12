@@ -1,0 +1,68 @@
+ 📘 AWS ADOT + OpenTelemetry Collector for Traces to X-Ray:----------
+1️⃣ Prerequisites
+✔️ EKS cluster and kubectl access
+
+✔️ CertManager installed (required by OpenTelemetry Operator)
+
+✔️ IAM Role (attached to nodes or via IRSA) with:
+
+                  {
+                    "Action": [
+                      "xray:PutTraceSegments",
+                      "xray:PutTelemetryRecords"
+                    ],
+                    "Effect": "Allow",
+                    "Resource": "*"
+                  }
+2️⃣ Install ADOT Addon (DaemonSet only)---
+                aws eks create-addon \
+                  --cluster-name <cluster-name> \
+                  --addon-name adot \
+                  --addon-version v0.117.0-eksbuild.1 \
+                  --region us-east-1
+3️⃣ Install OpenTelemetry Operator (with CRDs):--------
+kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releases/download/v0.100.0/opentelemetry-operator.yaml
+✅ This registers:
+-} OpenTelemetryCollector CRD
+-} Admission webhooks
+-} Operator controller deployment
+
+4️⃣ Minimal Working YAML (Traces → X-Ray):---------
+Save as opentelemetrycollector.yaml:
+                  apiVersion: opentelemetry.io/v1beta1
+                  kind: OpenTelemetryCollector
+                  metadata:
+                    name: observability-collector
+                    namespace: opentelemetry-operator-system
+                  spec:
+                    mode: deployment
+                    image: public.ecr.aws/aws-observability/aws-otel-collector:latest
+                    config:
+                      receivers:
+                        otlp:
+                          protocols:
+                            grpc: {}
+                            http: {}
+                      processors:
+                        batch: {}
+                      exporters:
+                        awsxray:
+                          region: us-east-1
+                      service:
+                        pipelines:
+                          traces:
+                            receivers: [otlp]
+                            processors: [batch]
+                            exporters: [awsxray]
+                
+kubectl apply -f opentelemetrycollector.yaml -n opentelemetry-operator-system
+
+5️⃣ Validate Deployment:---------
+kubectl get pods -n opentelemetry-operator-system
+kubectl logs <observability-pod> -n opentelemetry-operator-system
+
+✅ Log output should include:
+
+Exporter "awsxray" started
+Everything is ready. Begin running and processing data.
+
