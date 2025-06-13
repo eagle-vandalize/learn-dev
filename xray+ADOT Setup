@@ -29,31 +29,41 @@ kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releas
 
 4️⃣ Minimal Working YAML (Traces → X-Ray):---------
 Save as opentelemetrycollector.yaml:
-                  apiVersion: opentelemetry.io/v1beta1
-                  kind: OpenTelemetryCollector
-                  metadata:
-                    name: observability-collector
-                    namespace: opentelemetry-operator-system
-                  spec:
-                    mode: deployment
-                    image: public.ecr.aws/aws-observability/aws-otel-collector:latest
-                    config:
-                      receivers:
-                        otlp:
-                          protocols:
-                            grpc: {}
-                            http: {}
-                      processors:
-                        batch: {}
-                      exporters:
-                        awsxray:
-                          region: us-east-1
-                      service:
-                        pipelines:
-                          traces:
-                            receivers: [otlp]
-                            processors: [batch]
-                            exporters: [awsxray]
+              apiVersion: opentelemetry.io/v1beta1
+              kind: OpenTelemetryCollector
+              metadata:
+                name: observability-collector
+                namespace: opentelemetry-operator-system
+              spec:
+                mode: deployment
+                image: public.ecr.aws/aws-observability/aws-otel-collector:latest
+                config:
+                  receivers:
+                    otlp:
+                      protocols:
+                        grpc:
+                          endpoint: 0.0.0.0:4317
+                        http:
+                          endpoint: 0.0.0.0:4318
+                  processors:
+                    batch: {}
+                  exporters:
+                    awsxray:
+                      region: us-east-1
+                  service:
+                    pipelines:
+                      traces:
+                        receivers: [otlp]
+                        processors: [batch]
+                        exporters: [awsxray]
+                ports:
+                  - name: otlp-grpc
+                    port: 4317
+                    protocol: TCP
+                  - name: otlp-http
+                    port: 4318
+                    protocol: TCP
+              
                 
 kubectl apply -f opentelemetrycollector.yaml -n opentelemetry-operator-system
 
