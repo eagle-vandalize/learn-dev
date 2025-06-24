@@ -71,6 +71,63 @@ kubectl apply -f opentelemetrycollector.yaml -n opentelemetry-operator-system
 kubectl get pods -n opentelemetry-operator-system
 kubectl logs <observability-pod> -n opentelemetry-operator-system
 
+for testing:---------
+vi test-trace-pod.yaml
+      # test-trace-pod.yaml
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: otel-tester
+        namespace: opentelemetry-operator-system
+      spec:
+        containers:
+        - name: tester
+          image: curlimages/curl:latest
+          command: ["sleep", "3600"]
+
+kubectl exec -it otel-tester -n opentelemetry-operator-system -- sh
+to get traces hit it :
+         curl -X POST http://observability-collector-collector:4318/v1/traces \
+           -H "Content-Type: application/json" \
+           -d '{
+             "resourceSpans": [
+               {
+                 "resource": {
+                   "attributes": [
+                     {
+                       "key": "service.name",
+                       "value": { "stringValue": "adot-test-service" }
+                     }
+                   ]
+                 },
+                 "scopeSpans": [
+                   {
+                     "scope": {
+                       "name": "manual.test"
+                     },
+                     "spans": [
+                       {
+                         "traceId": "70d5b2a8b9e84a129b2e4c1767e3c4ee",
+                         "spanId": "0d6b4e9a3bce4f63",
+                         "name": "test-span-from-otel-tester",
+                         "kind": 1,
+                         "startTimeUnixNano": 1687500000000000000,
+                         "endTimeUnixNano": 1687500000000100000,
+                         "attributes": [
+                           {
+                             "key": "http.method",
+                             "value": { "stringValue": "GET" }
+                           }
+                         ]
+                       }
+                     ]
+                   }
+                 ]
+               }
+             ]
+           }'
+ 
+
 ✅ Log output should include:
 
 Exporter "awsxray" started
